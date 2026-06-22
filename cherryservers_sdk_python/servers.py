@@ -22,6 +22,9 @@ if TYPE_CHECKING:
 
     from requests import Response
 
+# "allocated" is the terminal status for iPXE deployments.
+TERMINAL_STATUSES: Final[set[str]] = {"deployed", "allocated"}
+
 
 class NotBaremetalError(Exception):
     """Attempted baremetal only operation on VPS."""
@@ -479,7 +482,9 @@ class ServerClient(_base.ResourceClient):
             self.request_timeout,
         )
         if wait_for_active:
-            return self._wait_for_status(response, "deployed", deployment_timeout)
+            return self._wait_for_status(
+                response, TERMINAL_STATUSES, deployment_timeout
+            )
         return self.get_by_id(response.json()["id"])
 
     def delete(self, server_id: int) -> None:
@@ -512,7 +517,9 @@ class ServerClient(_base.ResourceClient):
             self.request_timeout,
         )
         if wait_for_active:
-            return self._wait_for_status(response, "deployed", deployment_timeout)
+            return self._wait_for_status(
+                response, TERMINAL_STATUSES, deployment_timeout
+            )
         return self.get_by_id(response.json()["id"])
 
     def power_on(
@@ -530,7 +537,9 @@ class ServerClient(_base.ResourceClient):
             self.request_timeout,
         )
         if wait_for_active:
-            return self._wait_for_status(response, "deployed", deployment_timeout)
+            return self._wait_for_status(
+                response, TERMINAL_STATUSES, deployment_timeout
+            )
         return self.get_by_id(response.json()["id"])
 
     def reboot(
@@ -548,7 +557,9 @@ class ServerClient(_base.ResourceClient):
             self.request_timeout,
         )
         if wait_for_active:
-            return self._wait_for_status(response, "deployed", deployment_timeout)
+            return self._wait_for_status(
+                response, TERMINAL_STATUSES, deployment_timeout
+            )
         return self.get_by_id(response.json()["id"])
 
     def enter_rescue_mode(
@@ -596,7 +607,9 @@ class ServerClient(_base.ResourceClient):
         )
 
         if wait_for_active:
-            return self._wait_for_status(response, "deployed", deployment_timeout)
+            return self._wait_for_status(
+                response, TERMINAL_STATUSES, deployment_timeout
+            )
         return self.get_by_id(response.json()["id"])
 
     def rebuild(
@@ -618,7 +631,9 @@ class ServerClient(_base.ResourceClient):
             self.request_timeout,
         )
         if wait_for_active:
-            return self._wait_for_status(response, "deployed", deployment_timeout)
+            return self._wait_for_status(
+                response, TERMINAL_STATUSES, deployment_timeout
+            )
         return self.get_by_id(response.json()["id"])
 
     def reset_bmc_password(self, server_id: int) -> Server:
