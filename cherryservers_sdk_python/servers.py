@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from pydantic import Field
 
@@ -18,6 +18,8 @@ from cherryservers_sdk_python import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
+
     from requests import Response
 
 
@@ -428,12 +430,12 @@ class ServerClient(_base.ResourceClient):
     DEFAULT_DEPLOYMENT_TIMEOUT = 1800
 
     def _wait_for_status(
-        self, response: Response, target_status: str, timeout: float
+        self, response: Response, target_status: Collection[str], timeout: float
     ) -> Server:
         resp_json = response.json()
         server = Server(self, ServerModel.model_validate(resp_json))
         _resource_polling.wait_for_resource_condition(
-            server, timeout, lambda: server.get_status() == target_status
+            server, timeout, lambda: server.get_status() in target_status
         )
         return server
 
