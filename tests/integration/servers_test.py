@@ -14,6 +14,8 @@ import cherryservers_sdk_python
 if TYPE_CHECKING:
     from collections.abc import Generator
 
+IPXE_IMAGE = "custom_ipxe_install"
+
 
 def _generate_password(length: int) -> str:
     """Generate a random password.
@@ -240,3 +242,71 @@ class TestServer:
 
         with pytest.raises(requests.exceptions.HTTPError):
             facade.servers.get_by_id(server.get_id())
+
+
+def _supports_ipxe(plan: cherryservers_sdk_python.plans.Plan) -> bool:
+    model = plan.get_model()
+    assert model.softwares is not None
+    return any(s.image.slug == IPXE_IMAGE for s in model.softwares)
+
+
+def _get_ipxe_plan(
+    facade: cherryservers_sdk_python.facade.CherryApiFacade, team_id: int
+) -> tuple[str, str]:
+    """Get plan and region slug of a plan that supports iPXE."""
+    plans = facade.plans.list_by_team(team_id)
+
+    # Pick plan with the most stock available.
+    max_ = 0
+    plan = ""
+    region = ""
+    for p in plans:
+        model = p.get_model()
+        assert model.available_regions is not None
+        for r in model.available_regions:
+            assert r.stock_qty is not None
+            if r.stock_qty > max_ and _supports_ipxe(p):
+                assert model.slug is not None
+                plan = model.slug
+                assert r.slug is not None
+                region = r.slug
+                max_ = r.stock_qty
+
+    if max_ == 0:
+        msg = "no plans with ipxe support"
+        raise RuntimeError(msg)
+
+    return (plan, region)
+
+
+def test_ipxe_server_lifecycle(
+    facade: cherryservers_sdk_python.facade.CherryApiFacade,
+    team_id: int,
+    project: cherryservers_sdk_python.projects.Project,
+) -> None:
+    """Test iPXE server creation and rebuilding lifecycle."""
+    plan, region = _get_ipxe_plan(facade, team_id)
+    req = cherryservers_sdk_python.servers.CreationRequest(
+        plan=plan,
+        region=region,
+        image=IPXE_IMAGE,
+    )
+
+    server = facade.servers.create(req, project.get_id())
+    model = server.get_model()
+    assert model.deployed_image is not None
+    assert model.deployed_image.slug == IPXE_IMAGE
+    assert model.status in cherryservers_sdk_python.servers.TERMINAL_STATUSES
+    assert model.hostname is not None
+
+    rebuild_req = cherryservers_sdk_python.servers.RebuildRequest(
+        password=_generate_password(20),
+        image=model.deployed_image.slug,
+        hostname=model.hostname,
+    )
+
+    server = facade.servers.rebuild(server.get_id(), rebuild_req)
+    model = server.get_model()
+    assert model.deployed_image is not None
+    assert model.deployed_image.slug == IPXE_IMAGE
+    assert model.status in cherryservers_sdk_python.servers.TERMINAL_STATUSES

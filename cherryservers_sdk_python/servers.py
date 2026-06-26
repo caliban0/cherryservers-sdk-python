@@ -256,6 +256,10 @@ class CreationRequest(_base.RequestSchema):
          Defaults to False.
         storage_id (int | None): ID of the EBS that will be attached to the server.
         cycle (str | None): Billing cycle slug. Defaults to 'hourly'.
+        ipxe (str | None): Base64 encoded iPXE script.
+         The decoded content must start with `#!ipxe`.
+         `image` must be set to `custom_ipxe_install`.
+         Note that not all server plans support the `custom_ipxe_install` image.
 
     """
 
@@ -293,6 +297,13 @@ class CreationRequest(_base.RequestSchema):
     )
     cycle: str | None = Field(
         description="Billing cycle slug. Defaults to 'hourly'.", default="hourly"
+    )
+    ipxe: str | None = Field(
+        description="Base64 encoded iPXE script. "
+        "The decoded content must start with `#!ipxe`. "
+        "`image` must be set to `custom_ipxe_install`. "
+        "Note that not all server plans support the `custom_ipxe_install` image.",
+        default=None,
     )
 
 
@@ -374,6 +385,10 @@ class RebuildRequest(_base.RequestSchema):
         user_data (str | None): Base64 encoded user-data blob.
          Either a bash or cloud-config script.
         os_partition_size (int | None): OS partition size in GB.
+        ipxe (str | None): Base64 encoded iPXE script.
+         The decoded content must start with `#!ipxe`.
+         `image` must be set to `custom_ipxe_install`.
+         Note that not all server plans support the `custom_ipxe_install` image.
 
     """
 
@@ -390,6 +405,13 @@ class RebuildRequest(_base.RequestSchema):
     )
     os_partition_size: int | None = Field(
         description="OS partition size.", default=None
+    )
+    ipxe: str | None = Field(
+        description="Base64 encoded iPXE script. "
+        "The decoded content must start with `#!ipxe`. "
+        "`image` must be set to `custom_ipxe_install`. "
+        "Note that not all server plans support the `custom_ipxe_install` image.",
+        default=None,
     )
 
 

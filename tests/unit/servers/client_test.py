@@ -67,14 +67,14 @@ def test_list_by_project_success(
     "creation_request",
     [
         cherryservers_sdk_python.servers.CreationRequest(
-            plan="cloud_vps_1",
+            plan="amd-ryzen-9700x",
             image="fedora_41_64bit",
-            region="eu_nord_1",
+            region="LT-Siauliai",
         ),
         cherryservers_sdk_python.servers.CreationRequest(
-            plan="cloud_vps_1",
-            image="fedora_41_64bit",
-            region="eu_nord_1",
+            plan="amd-ryzen-9700x",
+            image="ubuntu_24_04_64bit",
+            region="LT-Siauliai",
             hostname="test",
             ssh_keys=set(),
             ip_addresses=set(),
@@ -82,6 +82,12 @@ def test_list_by_project_success(
             tags={},
             spot_market=False,
             storage_id=0,
+        ),
+        cherryservers_sdk_python.servers.CreationRequest(
+            plan="amd-ryzen-9700x",
+            image="custom_ipxe_install",
+            region="LT-Siauliai",
+            ipxe="abc",
         ),
     ],
 )
@@ -213,11 +219,12 @@ def test_delete_success(
             "powering_on",
             "rebuild",
             cherryservers_sdk_python.servers.RebuildRequest(
-                image="fedora_41_64bit",
+                image="ubuntu_24_04_64bit",
                 hostname="test",
                 password="123456789",  # noqa: S106
                 ssh_keys=set(),
                 user_data="abc",
+                ipxe="abc",
             ),
         ),
         (
