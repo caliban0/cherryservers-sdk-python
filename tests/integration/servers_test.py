@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import base64
 import secrets
 import string
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -286,10 +288,11 @@ def test_ipxe_server_lifecycle(
 ) -> None:
     """Test iPXE server creation and rebuilding lifecycle."""
     plan, region = _get_ipxe_plan(facade, team_id)
+    with (Path(__file__).parent / "testdata" / "ubuntu.ipxe").open() as file:
+        ipxe = base64.standard_b64encode(file.read().encode())
+    ipxe_str = ipxe.decode("ascii")
     req = cherryservers_sdk_python.servers.CreationRequest(
-        plan=plan,
-        region=region,
-        image=IPXE_IMAGE,
+        plan=plan, region=region, image=IPXE_IMAGE, ipxe=ipxe_str
     )
 
     server = facade.servers.create(req, project.get_id())
@@ -303,6 +306,7 @@ def test_ipxe_server_lifecycle(
         password=_generate_password(20),
         image=model.deployed_image.slug,
         hostname=model.hostname,
+        ipxe=ipxe_str,
     )
 
     server = facade.servers.rebuild(server.get_id(), rebuild_req)
