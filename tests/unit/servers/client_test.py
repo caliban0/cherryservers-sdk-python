@@ -8,12 +8,14 @@ from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 
-import cherryservers_sdk_python.users
+import cherryservers_sdk_python
 from cherryservers_sdk_python import _base
 from tests.unit import helpers
 
 if TYPE_CHECKING:
     from unittest import mock
+
+    from cherryservers_sdk_python._client import CherryApiClient
 
 
 def test_get_by_id_success(
@@ -278,3 +280,104 @@ def test_actions(
         None,
         servers_client.request_timeout,
     )
+
+
+def _setup_failed_deployment(
+    resp_body_ok: dict[str, Any], mock_client: CherryApiClient
+) -> None:
+    resp_body_ok["status"] = "deploying"
+    resp_body_failed = copy.deepcopy(resp_body_ok)
+    resp_body_failed["status"] = "failed deployment"
+
+    get_fail_resp = helpers.build_api_response(resp_body_failed, 200)
+    post_ok_resp = helpers.build_api_response(resp_body_ok, 201)
+    put_ok_resp = post_ok_resp
+    cast("mock.Mock", mock_client.get).return_value = get_fail_resp
+    cast("mock.Mock", mock_client.post).return_value = post_ok_resp
+    cast("mock.Mock", mock_client.put).return_value = put_ok_resp
+
+
+def test_deployment_error_propagation(
+    subtests: pytest.Subtests,
+    simple_server: dict[str, Any],
+    servers_client: cherryservers_sdk_python.servers.ServerClient,
+) -> None:
+    """Test server deployment failure error propagation."""
+    simple_server["plan"]["type"] = "baremetal"
+    _setup_failed_deployment(simple_server, servers_client._api_client)
+
+    with (
+        subtests.test("create"),
+        pytest.raises(cherryservers_sdk_python.servers.FailedDeploymentError),
+    ):
+        servers_client.create(
+            cherryservers_sdk_python.servers.CreationRequest(
+                plan="test-plan",
+                region="test-region",
+            ),
+            simple_server["project"]["id"],
+        )
+
+    with (
+        subtests.test("power off"),
+        pytest.raises(cherryservers_sdk_python.servers.FailedDeploymentError),
+    ):
+        servers_client.power_off(
+            simple_server["project"]["id"],
+        )
+
+    with (
+        subtests.test("power on"),
+        pytest.raises(cherryservers_sdk_python.servers.FailedDeploymentError),
+    ):
+        servers_client.power_on(
+            simple_server["project"]["id"],
+        )
+
+    with (
+        subtests.test("reboot"),
+        pytest.raises(cherryservers_sdk_python.servers.FailedDeploymentError),
+    ):
+        servers_client.reboot(
+            simple_server["project"]["id"],
+        )
+
+    with (
+        subtests.test("power off"),
+        pytest.raises(cherryservers_sdk_python.servers.FailedDeploymentError),
+    ):
+        servers_client.power_off(
+            simple_server["project"]["id"],
+        )
+
+    with (
+        subtests.test("enter rescue mode"),
+        pytest.raises(cherryservers_sdk_python.servers.FailedDeploymentError),
+    ):
+        servers_client.enter_rescue_mode(
+            simple_server["project"]["id"],
+            cherryservers_sdk_python.servers.EnterRescueModeRequest(
+                password="test",  # noqa: S106
+            ),
+        )
+
+    with (
+        subtests.test("exit rescue mode"),
+        pytest.raises(cherryservers_sdk_python.servers.FailedDeploymentError),
+    ):
+        servers_client.exit_rescue_mode(
+            simple_server["project"]["id"],
+        )
+
+    with (
+        subtests.test("rebuilt"),
+        pytest.raises(cherryservers_sdk_python.servers.FailedDeploymentError),
+    ):
+        servers_client.rebuild(
+            simple_server["project"]["id"],
+            cherryservers_sdk_python.servers.RebuildRequest(
+                image="test-image",
+                hostname="test-hostname",
+                password="test",  # noqa: S106
+            ),
+        )

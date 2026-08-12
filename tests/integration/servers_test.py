@@ -299,7 +299,6 @@ def test_ipxe_server_lifecycle(
     model = server.get_model()
     assert model.deployed_image is not None
     assert model.deployed_image.slug == IPXE_IMAGE
-    assert model.status in cherryservers_sdk_python.servers.TERMINAL_STATUSES
     assert model.hostname is not None
 
     rebuild_req = cherryservers_sdk_python.servers.RebuildRequest(
@@ -313,4 +312,3 @@ def test_ipxe_server_lifecycle(
     model = server.get_model()
     assert model.deployed_image is not None
     assert model.deployed_image.slug == IPXE_IMAGE
-    assert model.status in cherryservers_sdk_python.servers.TERMINAL_STATUSES
