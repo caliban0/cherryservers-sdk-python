@@ -225,6 +225,7 @@ def test_delete_success(
                 ssh_keys=set(),
                 user_data="abc",
                 ipxe="abc",
+                persist_ipxe=True,
             ),
         ),
         (

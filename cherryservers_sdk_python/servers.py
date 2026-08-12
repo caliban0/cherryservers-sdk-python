@@ -260,6 +260,9 @@ class CreationRequest(_base.RequestSchema):
          The decoded content must start with `#!ipxe`.
          `image` must be set to `custom_ipxe_install`.
          Note that not all server plans support the `custom_ipxe_install` image.
+        persist_ipxe (bool): Persist the universal iPXE image between server boots.
+         See the `product docs <https://www.cherryservers.com/knowledge/docs/compute/configuration-management/ipxe#how-ipxe-works-with-cherry-servers>`__
+         for more on how Cherry Servers implements iPXE support.
 
     """
 
@@ -304,6 +307,10 @@ class CreationRequest(_base.RequestSchema):
         "`image` must be set to `custom_ipxe_install`. "
         "Note that not all server plans support the `custom_ipxe_install` image.",
         default=None,
+    )
+    persist_ipxe: bool = Field(
+        description="Persist the universal iPXE image between server boots.",
+        default=False,
     )
 
 
@@ -389,6 +396,9 @@ class RebuildRequest(_base.RequestSchema):
          The decoded content must start with `#!ipxe`.
          `image` must be set to `custom_ipxe_install`.
          Note that not all server plans support the `custom_ipxe_install` image.
+        persist_ipxe (bool): Persist the universal iPXE image between server boots.
+         See the `product docs <https://www.cherryservers.com/knowledge/docs/compute/configuration-management/ipxe#how-ipxe-works-with-cherry-servers>`__
+         for more on how Cherry Servers implements iPXE support.
 
     """
 
@@ -412,6 +422,10 @@ class RebuildRequest(_base.RequestSchema):
         "`image` must be set to `custom_ipxe_install`. "
         "Note that not all server plans support the `custom_ipxe_install` image.",
         default=None,
+    )
+    persist_ipxe: bool = Field(
+        description="Persist the universal iPXE image between server boots.",
+        default=False,
     )
 
 
