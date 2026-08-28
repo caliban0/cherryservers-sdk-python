@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING
 
 from pydantic import Field
 
@@ -477,15 +477,17 @@ class ServerClient(_base.ResourceClient):
 
     def _wait_for_terminal(self, response: Response, timeout: float) -> Server:
         # "allocated" is the terminal status for iPXE deployments.
-        terminal_statuses: Final[set[str]] = {
+        terminal_statuses: set[str] = {
             "deployed",
             "allocated",
-            "rescue mode",
             "failed deployment",
+            "rescue mode",
         }
 
         resp_json = response.json()
         server = Server(self, ServerModel.model_validate(resp_json))
+        if server.get_status() == "rescue mode":
+            terminal_statuses.remove("rescue mode")
         _resource_polling.wait_for_resource_condition(
             server, timeout, lambda: server.get_status() in terminal_statuses
         )
