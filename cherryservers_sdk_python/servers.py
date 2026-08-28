@@ -615,16 +615,7 @@ class ServerClient(_base.ResourceClient):
         wait_for_active: bool = True,
         deployment_timeout: int = DEFAULT_DEPLOYMENT_TIMEOUT,
     ) -> Server:
-        """Put server into rescue mode.
-
-        Only for baremetal servers!
-        """
-        server = self.get_by_id(server_id)
-        server_model = server.get_model()
-
-        if server_model.plan is not None and server_model.plan.type != "baremetal":
-            raise NotBaremetalError
-
+        """Put server into rescue mode."""
         response = self._api_client.post(
             f"servers/{server_id}/actions",
             rescue_mode_schema,
@@ -753,10 +744,7 @@ class Server(
         self._model = serv.get_model()
 
     def enter_rescue_mode(self, rescue_mode_schema: EnterRescueModeRequest) -> None:
-        """Put a Cherry Servers server into rescue mode.
-
-        Only for baremetal servers!
-        """
+        """Put a Cherry Servers server into rescue mode."""
         serv = self._client.enter_rescue_mode(
             self._model.id,
             rescue_mode_schema,
